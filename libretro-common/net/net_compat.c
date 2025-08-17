@@ -212,12 +212,11 @@ done:
 }
 
 #elif defined(GEKKO)
-#ifndef HW_RVL
+#ifdef HW_DOL
 #ifndef INET_ADDRSTRLEN
 #define INET_ADDRSTRLEN 16
 #endif
 
-#ifdef HW_DOL
 struct hostent *gethostbyname(const char *name)
 {
    static struct hostent      he   = {0};
@@ -241,7 +240,6 @@ struct hostent *gethostbyname(const char *name)
 
    return ret;
 }
-#endif
 #endif
 
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t size)
