@@ -613,7 +613,7 @@ static void gx_joypad_poll(void)
 static void *gx_joypad_init(void *data)
 {
    int i;
-   SYS_SetResetCallback(reset_cb);
+   SYS_SetResetCallback((resetcallback)reset_cb);
 #ifdef HW_RVL
    SYS_SetPowerCallback(power_callback);
 #endif

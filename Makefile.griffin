@@ -115,9 +115,9 @@ else ifeq ($(platform), ps3-cobra)
 
 # NGC/Wii - libogc
 else ifeq ($(libogc_platform), 1)
-   EXTERNAL_LIBOGC   ?= 0
-   HAVE_OGG_OGC      ?= 0
-   GX_PTHREAD_LEGACY ?= 1
+   EXTERNAL_LIBOGC   ?= 1
+   HAVE_OGG_OGC      ?= 1
+   GX_PTHREAD_LEGACY ?= 0
    CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
    CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
    LD = $(DEVKITPPC)/bin/powerpc-eabi-ld$(EXE_EXT)
@@ -133,14 +133,14 @@ else ifeq ($(libogc_platform), 1)
    INCLUDE += -I.
 
    ifeq ($(EXTERNAL_LIBOGC), 1)
-      CFLAGS   += -DEXTERNAL_LIBOGC
-      CXXFLAGS += -DEXTERNAL_LIBOGC
-      INCLUDE += -I$(DEVKITPRO)/libogc/include
+      CFLAGS   += -DEXTERNAL_LIBOGC -DENABLE_LIBOGC2
+      CXXFLAGS += -DEXTERNAL_LIBOGC -DENABLE_LIBOGC2
+      INCLUDE += -I$(DEVKITPRO)/libogc2/include
 
       ifeq ($(platform), ngc)
-         LIBDIRS += -L$(DEVKITPRO)/libogc/lib/cube
+         LIBDIRS += -L$(DEVKITPRO)/libogc2/lib/cube
       else ifeq ($(platform), wii)
-         LIBDIRS += -L$(DEVKITPRO)/libogc/lib/wii
+         LIBDIRS += -L$(DEVKITPRO)/libogc2/lib/wii
       endif
 
    else
@@ -185,15 +185,15 @@ else ifeq ($(libogc_platform), 1)
    endif
 
    ifeq ($(HAVE_OGG_OGC), 1)
-      LIBS += -L$(DEVKITPRO)/portlibs/ppc/lib -lvorbisfile -lvorbis -logg
+      LIBS += -L$(DEVKITPRO)/portlibs/wii/lib -lvorbisfile -lvorbis -logg
    endif
 
    ifeq ($(EXTERNAL_LIBOGC), 1)
-      LIBS += -lfat
+      LIBS += -lfat -liso9660
    endif
 
    ifeq ($(platform), wii)
-      LIBS += -lwiiuse -lbte
+      LIBS += -lwiiuse -lbte -ldi
 
       ifeq ($(USBGECKO), 1)
         LIBS += -ldb

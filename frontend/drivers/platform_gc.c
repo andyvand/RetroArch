@@ -20,11 +20,13 @@
 #include <string.h>
 
 #include <fat.h>
+#include <iso9660.h>
 #include <gctypes.h>
 #include <ogc/cache.h>
 #include <ogc/system.h>
 #include <ogc/usbstorage.h>
 #include <ogc/lwp_threads.h>
+#include <ogc/dvd.h>
 #include <sdcard/wiisd_io.h>
 
 #include <string/stdstring.h>
@@ -42,14 +44,14 @@
 #include "../../paths.h"
 #include "../../verbosity.h"
 
-#define EXECUTE_ADDR ((uint8_t *) 0x91800000)
-#define BOOTER_ADDR  ((uint8_t *) 0x93000000)
-#define ARGS_ADDR    ((uint8_t *) 0x93200000)
+#define EXECUTE_ADDR ((uint8_t *) 0x81800000)
+#define BOOTER_ADDR  ((uint8_t *) 0x83000000)
+#define ARGS_ADDR    ((uint8_t *) 0x83200000)
 
-extern uint8_t _binary_wii_app_booter_app_booter_bin_start[];
-extern uint8_t _binary_wii_app_booter_app_booter_bin_end[];
-#define booter_start _binary_wii_app_booter_app_booter_bin_start
-#define booter_end _binary_wii_app_booter_app_booter_bin_end
+extern uint8_t _binary_gamecube_app_booter_app_booter_bin_start[];
+extern uint8_t _binary_gamecube_app_booter_app_booter_bin_end[];
+#define booter_start _binary_gamecube_app_booter_app_booter_bin_start
+#define booter_end _binary_gamecube_app_booter_app_booter_bin_end
 
 #ifdef IS_SALAMANDER
 char gx_rom_path[PATH_MAX_LENGTH];
@@ -230,13 +232,12 @@ void system_exec_wii(const char *_path, bool should_load_game)
    fatUnmount("cardb:");
    fatUnmount("sd:");
    fatUnmount("usb:");
+   ISO9660_Unmount("dvd:");
 
-#ifdef ENABLE_LIBOGC2
-   __io_wiisd.shutdown(&__io_wiisd);
-   __io_usbstorage.shutdown(&__io_usbstorage);
-#else
+#if defined(HW_RVL)
    __io_wiisd.shutdown();
    __io_usbstorage.shutdown();
+   __io_wiidvd.shutdown();
 #endif
 
    /* don't use memcpy, there might be an overlap. */

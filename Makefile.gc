@@ -13,7 +13,7 @@ PC_DEVELOPMENT_IP_ADDRESS  = 255.255.255.255
 PC_DEVELOPMENT_UDP_PORT    = 3490
 RARCH_CONSOLE              = 0
 USBGECKO                   = 0
-HAVE_STATIC_DUMMY ?= 0
+# HAVE_STATIC_DUMMY ?= 1
 
 SPACE      :=
 SPACE      := $(SPACE) $(SPACE)
@@ -53,7 +53,7 @@ LIB_CORE :=
 ifeq ($(HAVE_STATIC_DUMMY),1)
   DEFINES += -DHAVE_STATIC_DUMMY
 else
-  LIB_CORE += -lretro_wii
+  LIB_CORE += -lretro_ngc.a
 endif
 
 LIBS               := $(WHOLE_START) $(LIB_CORE) $(WHOLE_END)
@@ -67,8 +67,8 @@ CC                 = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
 CXX                = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
 LD                 = $(DEVKITPPC)/bin/powerpc-eabi-ld$(EXE_EXT)
 ELF2DOL            = $(DEVKITPPC)/bin/elf2dol$(EXE_EXT)
-EXT_TARGET        := $(TARGET_NAME)_wii.dol
-EXT_INTER_TARGET  := $(TARGET_NAME)_wii.elf
+EXT_TARGET        := $(TARGET_NAME)_gc.dol
+EXT_INTER_TARGET  := $(TARGET_NAME)_gc.elf
 
 # Check whether ELF2DOL executable exists
 # (path has changed in more recent toolchains)
@@ -79,14 +79,14 @@ endif
 INCLUDE += -I.
 
 ifeq ($(EXTERNAL_LIBOGC), 1)
-   CFLAGS   += -DEXTERNAL_LIBOGC -DENABLE_LIBOGC2
-   CXXFLAGS += -DEXTERNAL_LIBOGC -DENABLE_LIBOGC2
-   LIBDIRS += -L$(DEVKITPRO)/libogc2/lib/wii
-   INCLUDE +=  -I$(DEVKITPRO)/libogc2/include
+   CFLAGS   += -DEXTERNAL_LIBOGC
+   CXXFLAGS += -DEXTERNAL_LIBOGC
+   LIBDIRS += -L$(DEVKITPRO)/libogc/lib/cube -L$(DEVKITPRO)/portlibs/gamecube/lib
+   INCLUDE +=  -I$(DEVKITPRO)/libogc/include -I$(DEVKITPRO)/portlibs/gamecube/include
 else
    CFLAGS   += -DINTERNAL_LIBOGC
    CXXFLAGS += -DINTERNAL_LIBOGC
-   LIBDIRS += -Lwii/libogc/libs/wii
+   LIBDIRS += -Lwii/libogc/libs/cube
    INCLUDE += -Iwii/libogc/include
 endif
 
@@ -95,10 +95,10 @@ ifeq ($(GX_PTHREAD_LEGACY), 1)
    CXXFLAGS += -DGX_PTHREAD_LEGACY
 endif
 
-MACHDEP := -DHW_RVL -mrvl
+MACHDEP :=
 
 LIBDIRS += -L.
-MACHDEP += -DGEKKO -mcpu=750 -meabi -mhard-float
+MACHDEP += -DGEKKO=1 -DHW_DOL=1 -D__gamecube__=1 -mogc -mcpu=750 -meabi -mhard-float
 
 LDFLAGS += $(MACHDEP) -Wl,-Map,$(notdir $(EXT_INTER_TARGET)).map,-wrap,malloc,-wrap,free,-wrap,memalign,-wrap,calloc,-wrap,realloc,-wrap,strdup,-wrap,strndup,-wrap,malloc_usable_size
 
@@ -107,14 +107,14 @@ ifeq ($(BIG_STACK), 1)
 endif
 
 ifeq ($(HAVE_OGG_OGC), 1)
-   LIBS += -L$(DEVKITPRO)/portlibs/wii/lib -lvorbisfile -lvorbis -logg
+   LIBS += -L$(DEVKITPRO)/portlibs/gamecube/lib -lvorbisfile -lvorbis -logg
 endif
 
 ifeq ($(EXTERNAL_LIBOGC), 1)
-   LIBS += -L$(DEVKITPRO)/libogc2/wii/lib -lfat -liso9660 -ldi
+   LIBS += -lfat -liso9660
 endif
 
-LIBS += -lwiiuse -lbte
+LIBS += -ldb -lbba -laesnd
 
 ifeq ($(USBGECKO), 1)
   LIBS += -ldb
@@ -159,7 +159,7 @@ HAVE_STATIC_AUDIO_FILTERS := 1
 HAVE_STATIC_VIDEO_FILTERS := 1
 
 #HAVE_LANGEXTRA          := 1
-HAVE_WIIUSB_HID          := 1
+HAVE_WIIUSB_HID          := 0
 HAVE_HID                 := 1
 HAVE_RARCH_EXEC          := 1
 HAVE_RSOUND              := 0
@@ -168,10 +168,11 @@ HAVE_OZONE               := 0
 HAVE_RGUI                := 1
 HAVE_MATERIALUI          := 0
 HAVE_CHEEVOS             := 1
+HAVE_g                   := 1
 
-CFLAGS      += -DHAVE_SOCKET_LEGACY -DHAVE_CHEEVOS
+CFLAGS      += -DHAVE_SOCKET_LEGACY=1 -DHAVE_CHEEVOS=1
 
-APP_BOOTER_DIR = wii/app_booter
+APP_BOOTER_DIR = gamecube/app_booter
 PLATOBJS := $(APP_BOOTER_DIR)/app_booter.binobj
 
 ifeq ($(USBGECKO), 1)
@@ -184,11 +185,13 @@ INCLUDE += -I./libretro-common/include \
            -Ideps/stb
 CFLAGS += -Wall -std=gnu99 $(MACHDEP) $(PLATCFLAGS) $(INCLUDE)
 
-OBJ =  $(PLATOBJS) audio/drivers/gx_audio.o gfx/drivers/gx_gfx.o input/drivers/gx_input.o frontend/drivers/platform_gx.o input/drivers_joypad/gx_joypad.o memory/wii/mem2_manager.o gfx/drivers/gx_gfx_vi_encoder.o frontend/drivers/platform_wii.o input/drivers_hid/wiiusb_hid.o 
+OBJ =  $(PLATOBJS) audio/drivers/gx_audio.o gfx/drivers/gx_gfx.o input/drivers/gx_input.o frontend/drivers/platform_gx.o input/drivers_joypad/gx_joypad.o memory/gamecube/mem2_manager.o gfx/drivers/gx_gfx_vi_encoder.o frontend/drivers/platform_gc.o
 
 ifeq ($(EXTERNAL_LIBOGC), 0)
    OBJ += wii/libogc/libfat/libfat.o wii/libogc/libfat/fatfile.o wii/libogc/libfat/file_allocation_table.o wii/libogc/libfat/cache.o wii/libogc/libfat/fatdir.o wii/libogc/libfat/partition.o wii/libogc/libfat/directory.o wii/libogc/libfat/filetime.o wii/libogc/libfat/disc.o
 endif
+
+CFLAGS += -std=gnu99 -DHAVE_RGUI=1 -DHAVE_MENU=1 -DHAVE_GRIFFIN=1 -Wno-char-subscripts -DRARCH_INTERNAL=1
 
 include Makefile.common
 
@@ -237,8 +240,6 @@ endif
 ifeq ($(RARCH_MOBILE), 1)
    CFLAGS += -DRARCH_MOBILE
 endif
-
-CFLAGS += -std=gnu99 -DHAVE_RGUI -DHAVE_MENU -DHAVE_GRIFFIN=1 -Wno-char-subscripts -DRARCH_INTERNAL
 
 ifeq ($(HAVE_FILTERS_BUILTIN), 1)
    CFLAGS += -DHAVE_FILTERS_BUILTIN

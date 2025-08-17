@@ -212,6 +212,38 @@ done:
 }
 
 #elif defined(GEKKO)
+#ifndef HW_RVL
+#ifndef INET_ADDRSTRLEN
+#define INET_ADDRSTRLEN 16
+#endif
+
+#ifdef HW_DOL
+struct hostent *gethostbyname(const char *name)
+{
+   static struct hostent      he   = {0};
+   struct hostent *ret = NULL;
+   char addr[INET_ADDRSTRLEN]; // sufficient for both v4 and v6 address
+   memset(addr, 0, INET_ADDRSTRLEN);
+
+   if (!name)
+      return NULL;
+
+   inet_ntop(AF_INET, name, (char *)addr, INET_ADDRSTRLEN);
+
+   he.h_name      = NULL;
+   he.h_aliases   = NULL;
+   he.h_addrtype  = AF_INET;
+   he.h_length    = sizeof(addr);
+   he.h_addr_list = &he.h_addr;
+   he.h_addr      = (char*)&addr;
+
+   ret = &he;
+
+   return ret;
+}
+#endif
+#endif
+
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t size)
 {
    const char *addr_str = inet_ntoa(*(struct in_addr*)src);
@@ -559,9 +591,15 @@ failure:
       char netmask[16] = {0};
       char gateway[16] = {0};
 
+#ifdef ENABLE_LIBOGC2
+      if (if_config(localip, netmask, gateway, true) < 0)
+#else
       if (if_config(localip, netmask, gateway, true, 10) < 0)
+#endif
       {
+#ifndef __gamecube__
          net_deinit();
+#endif
 
          return false;
       }

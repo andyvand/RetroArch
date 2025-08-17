@@ -26,6 +26,14 @@
 #include <gccore.h>
 #include <ogcsys.h>
 
+#ifndef NO_DVD
+#include <iso9660.h>
+#include <ogc/dvd.h>
+#ifdef HW_RVL
+#include <di/di.h>
+#endif
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include "../../config.h"
 #endif
@@ -108,6 +116,7 @@ enum
 {
    GX_DEVICE_SD = 0,
    GX_DEVICE_USB,
+   GX_DEVICE_DVD,
    GX_DEVICE_END
 };
 
@@ -139,7 +148,11 @@ static void gx_devthread(void *a)
       {
          if (gx_devices[i].mounted)
          {
+#ifdef ENABLE_LIBOGC2
+            if (!gx_devices[i].interface->isInserted(gx_devices[i].interface))
+#else
             if (!gx_devices[i].interface->isInserted())
+#endif
             {
                size_t _len;
                char n[8];
@@ -149,8 +162,21 @@ static void gx_devthread(void *a)
                fatUnmount(n);
             }
          }
-         else if (gx_devices[i].interface->startup() && gx_devices[i].interface->isInserted())
-            gx_devices[i].mounted = fatMountSimple(gx_devices[i].name, gx_devices[i].interface);
+#ifdef ENABLE_LIBOGC2
+         else if (gx_devices[i].interface->startup(gx_devices[i].interface) && gx_devices[i].interface->isInserted(gx_devices[i].interface)) {
+#else
+         else if (gx_devices[i].interface->startup() && gx_devices[i].interface->isInserted()) {
+#endif
+#ifndef NO_DVD
+            if (strncmp(gx_devices[i].name, "dvd", 3) == 0) {
+               gx_devices[i].mounted = ISO9660_Mount(gx_devices[i].name, gx_devices[i].interface);
+            } else {
+#endif
+               gx_devices[i].mounted = fatMountSimple(gx_devices[i].name, gx_devices[i].interface);
+#ifndef NO_DVD
+            }
+#endif
+         }
       }
 
       slock_unlock(gx_device_mutex);
@@ -245,6 +271,11 @@ static void frontend_gx_get_env(int *argc, char *argv[],
          }
       }
 
+#ifndef NO_DVD
+      if (gx_devices[GX_DEVICE_DVD].mounted)
+         chdir("dvd:/");
+      else
+#endif
       if (gx_devices[GX_DEVICE_SD].mounted)
          chdir("sd:/");
       else if (gx_devices[GX_DEVICE_USB].mounted)
@@ -380,10 +411,22 @@ static void frontend_gx_init(void *data)
             gx_devices[GX_DEVICE_USB].name,
             gx_devices[GX_DEVICE_USB].interface);
 
+#ifndef NO_DVD
+   gx_devices[GX_DEVICE_DVD].interface = &__io_wiidvd;
+   gx_devices[GX_DEVICE_DVD].name = "dvd";
+   gx_devices[GX_DEVICE_DVD].mounted = ISO9660_Mount(
+            gx_devices[GX_DEVICE_DVD].name,
+            gx_devices[GX_DEVICE_DVD].interface);
+#endif
+
    gx_device_cond_mutex = slock_new();
    gx_device_cond       = scond_new();
    gx_device_mutex      = slock_new();
    gx_device_thread     = sthread_create(gx_devthread, NULL);
+#else
+#ifndef NO_DVD
+   ISO9660_Mount("dvd", &__io_gcdvd);
+#endif
 #endif
 }
 
@@ -534,6 +577,11 @@ static int frontend_gx_parse_drive_list(void *data, bool load_content)
          enum_idx,
          FILE_TYPE_DIRECTORY, 0, 0, NULL);
 #endif
+   menu_entries_append(list,
+         "dvd:/",
+         msg_hash_to_str(MSG_EXTERNAL_APPLICATION_DIR),
+         enum_idx,
+         FILE_TYPE_DIRECTORY, 0, 0, NULL);
    menu_entries_append(list,
          "carda:/",
          msg_hash_to_str(MSG_EXTERNAL_APPLICATION_DIR),
