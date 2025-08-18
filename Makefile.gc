@@ -53,7 +53,7 @@ LIB_CORE :=
 ifeq ($(HAVE_STATIC_DUMMY),1)
   DEFINES += -DHAVE_STATIC_DUMMY
 else
-  LIB_CORE += -lretro_ngc.a
+  LIB_CORE += -lretro_ngc
 endif
 
 LIBS               := $(WHOLE_START) $(LIB_CORE) $(WHOLE_END)
