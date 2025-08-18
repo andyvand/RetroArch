@@ -554,7 +554,7 @@ static void rmSetMode(ps2_video_t *ps2, int force)
 
    ps2->gsGlobal                  = gsKit_init_global();
    gsKit_TexManager_setmode(ps2->gsGlobal, ETM_DIRECT);
-   ps2->vsync_callback_id         = gsKit_add_vsync_handler(vsync_handler);
+   ps2->vsync_callback_id         = gsKit_add_vsync_handler((int (*)(int))vsync_handler);
    ps2->gsGlobal->Mode            = mode->mode;
    ps2->gsGlobal->Width           = mode->width;
    ps2->gsGlobal->Height          = mode->height;
