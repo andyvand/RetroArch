@@ -638,6 +638,13 @@ bool menu_entries_list_search(const char *needle, size_t *idx)
 size_t menu_display_timedate(gfx_display_ctx_datetime_t *datetime,
       char *s, size_t len)
 {
+#ifdef PSX
+   (void)datetime;
+   (void)s;
+   (void)len;
+
+   return 0;
+#else
    /* Storage container for current menu datetime
     * representation string */
    static char datetime_cache[NAME_MAX_LENGTH];
@@ -1007,6 +1014,7 @@ size_t menu_display_timedate(gfx_display_ctx_datetime_t *datetime,
    /* Copy cached datetime string to input
     * menu_display_ctx_datetime_t struct */
    return strlcpy(s, datetime_cache, len);
+#endif
 }
 
 /* Display current (battery) power state */

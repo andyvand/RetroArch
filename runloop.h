@@ -76,6 +76,10 @@
  */
 #define RUNLOOP_TIME_TO_EXIT(quit_key_pressed) ((runloop_state.flags & RUNLOOP_FLAG_SHUTDOWN_INITIATED) || quit_key_pressed || !is_alive BSV_MOVIE_IS_EOF() || ((runloop_state.max_frames != 0) && (frame_count >= runloop_state.max_frames)) || runloop_exec)
 
+#ifdef PSX
+float roundf(float x);
+#endif
+
 enum runloop_state_enum
 {
    RUNLOOP_STATE_ITERATE = 0,

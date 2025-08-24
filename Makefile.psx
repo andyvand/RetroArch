@@ -1,0 +1,173 @@
+TARGET := retroarch_psx
+TARGET_RELEASE = retroarch_psx.elf
+
+LOAD_WITHOUT_CORE_INFO ?= 1
+DEBUG              = 0
+SCREEN_DEBUG       = 0
+GRIFFIN_BUILD      = 0
+HAVE_THREADS       = 0
+MUTE_WARNINGS      = 1
+WHOLE_ARCHIVE_LINK = 0
+HAVE_STATIC_DUMMY ?= 0
+PS2_IP = 192.168.1.10
+
+ifeq ($(LOAD_WITHOUT_CORE_INFO),1)
+   DEFINES += -DLOAD_WITHOUT_CORE_INFO
+endif
+
+ifeq ($(DEBUG), 1)
+   OPTIMIZE_LV	:= -O0 -g
+	DEFINES += -DDEBUG
+else
+   OPTIMIZE_LV	:= -O3
+endif
+
+ifeq ($(MUTE_WARNINGS), 1)
+   DISABLE_WARNINGS := -Wno-unused -Wno-format -Wno-format-truncation
+endif
+
+ifeq ($(HAVE_STATIC_DUMMY),1)
+  DEFINES += -DHAVE_STATIC_DUMMY
+else
+  LIBS += -L. -lretro_psx
+endif
+
+ifeq ($(SCREEN_DEBUG), 1)
+LIBS += -ldebug
+DEFINES += -DSCREEN_DEBUG
+endif
+
+DEFINES += -DRARCH_INTERNAL -DRARCH_CONSOLE
+
+ifeq ($(GRIFFIN_BUILD), 1)
+	OBJ += griffin/griffin.o
+	DEFINES += -DHAVE_GRIFFIN=1 -DHAVE_SCREENSHOTS -DHAVE_REWIND -DHAVE_MENU -DHAVE_CONFIGFILE -DHAVE_PATCH -DHAVE_CHEATS
+	DEFINES += -DHAVE_ZLIB -DHAVE_NO_BUILTINZLIB -DHAVE_RPNG -DHAVE_RJPEG -DHAVE_FILTERS_BUILTIN -DHAVE_7ZIP -D_7ZIP_ST -DHAVE_CC_RESAMPLER -DHAVE_AUDIOMIXER
+	DEFINES += -DHAVE_VIDEO_FILTER -DHAVE_RGUI -DHAVE_WINDOW_OFFSET
+	DEFINES += -DHAVE_DSP_FILTER
+else
+	HAVE_CC_RESAMPLER = 1
+	HAVE_MENU_COMMON = 1
+	HAVE_RPNG = 1
+	HAVE_RJPEG = 1
+	HAVE_RBMP = 1
+	HAVE_MENU = 1
+	HAVE_CONFIGFILE = 1
+	HAVE_PATCH = 1
+	HAVE_PATCH = 0 # disabled because <lzma.h> isn't available (or we haven't figured out how to install it)
+	HAVE_CHEATS = 1
+	HAVE_RGUI = 1
+	HAVE_MATERIALUI = 0
+	HAVE_XMB = 0
+	HAVE_OZONE = 0
+	HAVE_ZLIB = 1
+	HAVE_NO_BUILTINZLIB = 1
+	HAVE_7ZIP = 1
+	HAVE_SCREENSHOTS = 1
+	HAVE_REWIND = 1
+	HAVE_AUDIOMIXER = 1
+	HAVE_RWAV = 1
+	HAVE_DSP_FILTER = 1
+	HAVE_VIDEO_FILTER = 1
+	HAVE_FILTERS_BUILTIN = 1
+	HAVE_WINDOW_OFFSET = 1
+
+	include Makefile.common
+	CFLAGS += $(DEF_FLAGS)
+	BLACKLIST :=
+	OBJ := $(filter-out $(BLACKLIST),$(OBJ))
+	INCDIRS += $(INCLUDE_DIRS)
+endif
+
+ifeq ($(strip $(PSXSDK)),)
+$(error "Please set PSXSDK in your environment. export PSXSDK=<path to>psxsdk")
+endif
+
+ifneq ($(V),1)
+        Q := @
+endif
+
+CC = $(PSXSDK)/bin/mipsel-unknown-elf-gcc
+AR = $(PSXSDK)/bin/mipsel-unknown-elf-ar
+RANLIB = $(PSXSDK)/bin/mipsel-unknown-elf-ranlib
+
+EE_CC = $(CC)
+EE_AR = $(AR)
+EE_RANLIB = $(RANLIB)
+
+INCDIR = -I$(PSXSDK)/include
+INCDIR += -Ilibretro-common/include -Ideps -Ideps/stb -Ideps/7zip
+
+# Lib cdvd is needed to get proper time
+LIBS += -L$(PSXSDK)/lib  -T $(PSXSDK)/lib/gcc/mipsel-unknown-elf/15.2.0/psx.ld -L. -lpsx -lz
+
+CFLAGS = $(OPTIMIZE_LV) $(DISABLE_WARNINGS) $(DEFINES) -DPSX -march=r3000 -G0 -fsingle-precision-constant
+ASFLAGS = $(CFLAGS)
+
+EE_OBJS += $(OBJ)
+
+$(TARGET).elf: $(OBJ)
+	$(CC) -G0 -o $@ $(OBJ) $(LIBS)
+
+EE_CFLAGS = $(CFLAGS)
+EE_CXXFLAGS = $(CFLAGS)
+EE_LDFLAGS = $(LDFLAGS)
+EE_LIBS = $(LIBS)
+EE_ASFLAGS = $(ASFLAGS)
+EE_INCS = $(INCDIR)
+EE_BIN = $(TARGET).elf
+EE_GPVAL = $(GPVAL)
+
+all: $(EE_BIN)
+
+define INFO
+EE_BIN: $(EE_BIN)
+EE_CC: $(EE_CC)
+EE_CFLAGS: $(EE_CFLAGS)
+EE_CXX: $(EE_CXX)
+EE_CXXFLAGS: $(EE_CXXFLAGS)
+EE_INCS: $(EE_INCS)
+EE_OBJS: $(EE_OBJS)
+endef
+export INFO
+
+info:
+ifneq ($(V),1)
+	@echo "$$INFO"
+endif
+
+clean:
+	@$(if $(Q), $(shell echo echo RM $<),)
+	$(Q)rm -f $(EE_BIN) $(EE_OBJS)
+
+prepare:
+	ps2client -h $(PS2_IP) reset
+	ps2client -h $(PS2_IP) netdump
+
+run:
+	ps2client -h $(PS2_IP) execee host:$(EE_BIN)
+
+sim:
+ifeq ($(shell uname), Darwin)
+	/Applications/PCSX2.app/Contents/MacOS/PCSX2 -elf $(PWD)/$(EE_BIN)
+else
+	PCSX2 -elf $(PWD)/$(EE_BIN) -nogui
+endif
+
+debug: clean all run
+
+release: all
+	$(PSXSDK)/bin/elf2cpe $(EE_BIN) $(TARGET).cpe
+	$(PSXSDK)/bin/cpe2psx $(TARGET).cpe
+
+%.o: %.c
+	@$(if $(Q), $(shell echo echo CC $<),)
+	$(Q)$(EE_CC) $(EE_CFLAGS) $(EE_INCS) -c $< -o $@
+
+%.o: %.cc
+	@$(if $(Q), $(shell echo echo CXX $<),)
+	$(Q)$(EE_CXX) $(EE_CXXFLAGS) $(EE_INCS) -c $< -o $@
+
+%.o: %.cpp
+	@$(if $(Q), $(shell echo echo CXX $<),)
+	$(Q)$(EE_CXX) $(EE_CXXFLAGS) $(EE_INCS) -c $< -o $@

@@ -1,22 +1,17 @@
-;.vsh
 .entry main_vsh
 
-; Uniforms
 .fvec    scale_vector
 .alias   viewport_scale scale_vector.yxyx
 .alias   texture_scale scale_vector.zwzw
 
-; Constants
 .constf  _01N1   (0.0, 1.0, -1.0, 1.0)
 .alias   _0000    _01N1.xxxx
 .alias   _1111    _01N1.yyyy
 .alias   _0101    _01N1.xyxy
 
-; Inputs
 .alias   pos_in         v0
 .alias   texcoord_in    v1
 
-; Output
 .out     pos         position
 .out     texcoord    texcoord0
 

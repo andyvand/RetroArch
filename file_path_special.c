@@ -46,7 +46,13 @@
 #include <stdlib.h>
 #include <boolean.h>
 #include <string.h>
+
+#ifndef PSX
 #include <time.h>
+#else
+typedef unsigned int time_t;
+struct tm { unsigned int time; };
+#endif
 
 #include <file/file_path.h>
 #include <string/stdstring.h>

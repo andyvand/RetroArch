@@ -114,8 +114,10 @@ bool core_backup_get_backup_path(
       const char *dir_core_assets,
       char *s, size_t len)
 {
+#ifndef PSX
    time_t current_time;
    struct tm time_info;
+#endif
    const char *core_filename = NULL;
    char core_dir[DIR_MAX_LENGTH];
    char backup_dir[DIR_MAX_LENGTH];
@@ -143,6 +145,7 @@ bool core_backup_get_backup_path(
          backup_dir, sizeof(backup_dir)))
       return false;
 
+#ifndef PSX
    /* Get current time */
    time(&current_time);
    rtime_localtime(&current_time, &time_info);
@@ -160,6 +163,14 @@ bool core_backup_get_backup_path(
          (unsigned long)crc,
          (unsigned)backup_mode,
          FILE_PATH_CORE_BACKUP_EXTENSION);
+#else
+   snprintf(backup_filename, sizeof(backup_filename),
+            "%s.%08lx.%u.%s",
+            core_filename,
+            (unsigned long)crc,
+            (unsigned)backup_mode,
+            FILE_PATH_CORE_BACKUP_EXTENSION);
+#endif
 
    /* Build final path */
    fill_pathname_join_special(s, backup_dir,

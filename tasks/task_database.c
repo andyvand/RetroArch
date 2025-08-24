@@ -44,6 +44,16 @@
 #include "../verbosity.h"
 #include "task_database_cue.h"
 
+#ifdef PSX
+#ifndef getenv
+#define getenv(P) NULL
+#endif
+
+#ifndef INT64_MAX
+#define INT64_MAX 0x7fffffffffffffffLL
+#endif
+#endif
+
 typedef struct database_state_handle
 {
    database_info_list_t *info;
@@ -145,7 +155,7 @@ static void task_database_scan_console_output(const char *label, const char *db_
       _len    += strlcpy(string + _len, prefix, sizeof(string) - _len);
       _len    += strlcpy(string + _len, " ",    sizeof(string) - _len);
       strlcpy(string + _len, reset,  sizeof(string) - _len);
-      fputs(string, stdout);
+      puts(string);
    }
 #endif
    else
@@ -153,7 +163,7 @@ static void task_database_scan_console_output(const char *label, const char *db_
       size_t _len     = strlcpy(string, " ", sizeof(string));
       _len += strlcpy(string + _len, prefix, sizeof(string) - _len);
       strlcpy(string + _len, " ", sizeof(string) - _len);
-      fputs(string, stdout);
+      puts(string);
    }
 
    if (!db_name)

@@ -54,7 +54,10 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+
+#ifndef PSX
 #include <locale.h>
+#endif
 
 #include <boolean.h>
 #include <clamping.h>
@@ -6407,7 +6410,7 @@ static void retroarch_print_features(void)
    _len += _PSUPP_BUF(buf, _len, SUPPORTS_V4L2,            "Video4Linux2",    "Camera driver");
 #endif
 
-   fputs(buf, stdout);
+   printf("%s\n", buf);
 }
 
 static void retroarch_print_version(void)
@@ -6443,11 +6446,11 @@ static void retroarch_print_help(const char *arg0)
    buf[0]      = '\0';
 
    frontend_driver_attach_console();
-   fputs("\n", stdout);
+   puts("\n");
    puts("===================================================================");
    retroarch_print_version();
    puts("===================================================================");
-   fputs("\n", stdout);
+   puts("\n");
 
    fprintf(stdout, "Usage: %s [OPTIONS]... [FILE]\n\n", arg0);
 
@@ -6508,7 +6511,7 @@ static void retroarch_print_help(const char *arg0)
          , sizeof(buf) - _len);
 #endif
 
-   fputs(buf, stdout);
+   printf("%s\n", buf);
    buf[0] = '\0';
    _len   = 0;
 
@@ -6569,7 +6572,7 @@ static void retroarch_print_help(const char *arg0)
          "  An empty argument \"\" will disable automatic shader presets.\n"
          , sizeof(buf) - _len);
 
-   fputs(buf, stdout);
+   printf("%s\n", buf);
    buf[0] = '\0';
    _len   = 0;
 
@@ -6636,7 +6639,7 @@ static void retroarch_print_help(const char *arg0)
          "Overrides output video size when recording.\n"
          , sizeof(buf) - _len);
 
-   fputs(buf, stdout);
+   printf("%s\n", buf);
    buf[0] = '\0';
    _len   = 0;
 
@@ -6698,7 +6701,7 @@ static void retroarch_print_help(const char *arg0)
    /* Flush buffer here to avoid the error "error: string length ‘752’
     * is greater than the length ‘509’ ISO C90 compilers are required
     * to support" */
-   fputs(buf, stdout);
+   printf("%s\n", buf);
 
 #if defined(__linux__) || defined(__GNU__) || (defined(BSD) && !defined(__MACH__))
    buf[0] = '\0';
@@ -6715,7 +6718,7 @@ static void retroarch_print_help(const char *arg0)
          "  LIBRETRO_VIDEO_SHADER_DIRECTORY\n\n"
          "Refer to `man 6 retroarch' for a description of what they do.\n"
          , sizeof(buf) - _len);
-   fputs(buf, stdout);
+   printf("%s\n", buf);
 #endif
 }
 
@@ -7243,9 +7246,9 @@ static bool retroarch_parse_input_and_config(
                   unsigned id              = 0;
                   char *optarg_cpy         = strdup(optarg);
 
-                  if ((tok = strtok_r(optarg_cpy, ":", &save)))
+                  if ((tok = strtok(optarg_cpy, ":")))
                      port = (int)strtol(tok, NULL, 0);
-                  if ((tok = strtok_r(NULL, ":", &save)))
+                  if ((tok = strtok(NULL, ":")))
                      id   = (unsigned)strtoul(tok, NULL, 0);
                   free(optarg_cpy);
 
@@ -7765,6 +7768,7 @@ bool retroarch_main_init(int argc, char *argv[])
    video_st->flags              |= VIDEO_FLAG_ACTIVE;
    audio_state_get_ptr()->flags |= AUDIO_FLAG_ACTIVE;
 
+#ifndef PSX
    if (setjmp(global->error_sjlj_context) > 0)
    {
       RARCH_ERR("%s: \"%s\"\n",
@@ -7772,6 +7776,7 @@ bool retroarch_main_init(int argc, char *argv[])
             global_get_ptr()->error_string);
       goto error;
    }
+#endif
 
    global->flags |= GLOB_FLG_ERR_ON_INIT;
 
@@ -8513,7 +8518,9 @@ void retroarch_fail(int err_code, const char *err)
     * just exit right away. */
    strlcpy(global->error_string, err,
          sizeof(global->error_string));
+#ifndef PSX
    longjmp(global->error_sjlj_context, err_code);
+#endif
 }
 
 /* Called on close content, checks if we need to also exit retroarch */

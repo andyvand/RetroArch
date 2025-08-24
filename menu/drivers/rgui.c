@@ -7247,14 +7247,14 @@ static void rgui_update_menu_sublabel(rgui_t *rgui, size_t selection)
 
    if (!string_is_empty(entry.sublabel))
    {
-      char *tok, *save         = NULL;
+      char *tok                = NULL;
       bool prev_line_empty     = true;
       char *entry_sublabel_cpy = strdup(entry.sublabel);
 
       /* Sanitise sublabel
        * > Replace newline characters with standard delimiter
        * > Remove whitespace surrounding each sublabel line */
-      tok = strtok_r(entry_sublabel_cpy, "\n", &save);
+      tok = strtok(entry_sublabel_cpy, "\n");
 
       while (tok)
       {
@@ -7267,7 +7267,7 @@ static void rgui_update_menu_sublabel(rgui_t *rgui, size_t selection)
             strlcat(rgui->menu_sublabel, tok, sizeof(rgui->menu_sublabel));
             prev_line_empty = false;
          }
-         tok = strtok_r(NULL, "\n", &save);
+         tok = strtok(NULL, "\n");
       }
 
       free(entry_sublabel_cpy);

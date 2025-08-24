@@ -202,6 +202,10 @@ ifeq ($(TARGET), retroarch_ps2)
    OBJ += frontend/drivers/platform_ps2.o
 endif
 
+ifeq ($(TARGET), retroarch_psx)
+   OBJ += frontend/drivers/platform_psx.o
+endif
+
 # Git Version
 GIT_VERSION_CACHEDIR = $(if $(OBJDIR),$(OBJDIR),$(CURDIR))
 GIT_VERSION_CACHEFILE = $(GIT_VERSION_CACHEDIR)/git-version.cache
@@ -1200,6 +1204,13 @@ ifeq ($(TARGET), retroarch_ps2)
           input/drivers/ps2_input.o \
           input/drivers_joypad/ps2_joypad.o \
           audio/drivers/ps2_audio.o
+endif
+
+ifeq ($(TARGET), retroarch_psx)
+   OBJ += gfx/drivers/psx_gfx.o \
+          input/drivers/psx_input.o \
+          input/drivers_joypad/psx_joypad.o \
+          audio/drivers/psx_audio.o
 endif
 
 ifeq ($(TARGET), retroarch_orbis)

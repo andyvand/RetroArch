@@ -33,6 +33,10 @@
 
 #include "rmsgpack.h"
 
+#ifndef UINT64_C
+#define UINT64_C(c) c ## ULL
+#endif
+
 #define _MPF_FIXMAP     0x80
 #define _MPF_MAP16      0xde
 #define _MPF_MAP32      0xdf

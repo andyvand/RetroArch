@@ -252,6 +252,9 @@ input_device_driver_t *joypad_drivers[] = {
 #if defined(PS2)
    &ps2_joypad,
 #endif
+#if defined(PSX)
+   &psx_joypad,
+#endif
 #ifdef _3DS
    &ctr_joypad,
 #endif
@@ -316,6 +319,9 @@ input_driver_t *input_drivers[] = {
 #endif
 #if defined(PS2)
    &input_ps2,
+#endif
+#if defined(PSX)
+   &input_psx,
 #endif
 #if defined(_3DS)
    &input_ctr,

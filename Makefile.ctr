@@ -1,5 +1,5 @@
 TARGET := retroarch_3ds
-LIBRETRO =
+LIBRETRO = prboom
 
 DEBUG                   = 0
 CONSOLE_LOG             = 0
@@ -10,8 +10,8 @@ BUILD_3DSX              = 1
 BUILD_3DS               = 0
 BUILD_CIA               = 1
 LIBCTRU_NO_DEPRECATION  = 1
-USE_CTRULIB_2          ?= 0
-LOAD_WITHOUT_CORE_INFO ?= 0
+USE_CTRULIB_2          ?= 1
+LOAD_WITHOUT_CORE_INFO ?= 1
 
 APP_TITLE            = RetroArch 3DS
 APP_DESCRIPTION      = RetroArch 3DS
@@ -152,9 +152,9 @@ MAKEROM_ARGS_COMMON = -rsf $(APP_RSF) -exefslogo -elf $(TARGET).elf -icon $(TARG
 INCDIRS := -I$(CTRULIB)/include
 LIBDIRS := -L. -L$(CTRULIB)/lib
 
-ARCH     := -march=armv6k -mtune=mpcore -mfloat-abi=hard -marm -mfpu=vfp -mtp=soft
+ARCH     := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	+= -mword-relocations $(ARCH)
+CFLAGS	+= -mword-relocations -ffunction-sections $(ARCH)
 CFLAGS	+= -DARM11 -D_3DS
 
 ifeq ($(strip $(USE_CTRULIB_2)),1)
@@ -196,7 +196,7 @@ CFLAGS += -DHAVE_ONLINE_UPDATER -DHAVE_UPDATE_CORES -DHAVE_UPDATE_CORE_INFO
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 CFLAGS += -Werror=implicit-function-declaration
 
-ASFLAGS	 := -g $(ARCH) -O3
+ASFLAGS	 := -g $(ARCH) -O2
 LDFLAGS  += -specs=ctr/3dsx_custom.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 CFLAGS   += -std=gnu99
 

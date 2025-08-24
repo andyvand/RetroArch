@@ -22,7 +22,13 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <string.h>
+
+#ifndef PSX
 #include <time.h>
+#else
+typedef unsigned int time_t;
+struct tm { unsigned int time; };
+#endif
 
 #ifdef _WIN32
 #ifdef _XBOX
@@ -227,8 +233,8 @@ bool content_file_override_set(
       char *overrides_ext_cpy = strdup(overrides[i].extensions);
 
       /* Get list of extensions affected by overrides */
-      for ( tok = strtok_r(overrides_ext_cpy, "|", &save); tok;
-            tok = strtok_r(NULL, "|", &save))
+      for ( tok = strtok(overrides_ext_cpy, "|"); tok;
+            tok = strtok(NULL, "|"))
       {
          size_t num_entries;
          const char *ext                   = tok;

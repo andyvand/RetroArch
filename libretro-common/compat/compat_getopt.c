@@ -124,9 +124,8 @@ static int parse_short(const char *optstring, char * const *argv)
 static int parse_long(const struct option *longopts, char * const *argv)
 {
    size_t i;
-   char *save  = NULL;
    char *argv0 = strdup(&argv[0][2]);
-   char *token = strtok_r(argv0, "=", &save);
+   char *token = strtok(argv0, "=");
    const struct option *opt = NULL;
 
    for (i = 0; longopts[i].name; i++)

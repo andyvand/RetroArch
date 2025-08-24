@@ -38,7 +38,13 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+
+#ifndef PSX
 #include <time.h>
+#else
+typedef unsigned int time_t;
+struct tm { unsigned int time; };
+#endif
 
 #ifdef _MSC_VER
 #include <compat/msvc.h>
@@ -180,7 +186,12 @@ void retro_main_log_file_init(const char *path, bool append)
    mutexInit(&g_verbosity->mtx);
 #endif
 
+#ifdef PSX
+   g_verbosity->fp      = NULL;
+#else
    g_verbosity->fp      = stderr;
+#endif
+
    if (!path)
       return;
 
@@ -197,7 +208,9 @@ void retro_main_log_file_init(const char *path, bool append)
 
    /* TODO: this is only useful for a few platforms, find which and add ifdef */
    g_verbosity->buf         = calloc(1, 0x4000);
+#ifndef PSX
    setvbuf(g_verbosity->fp, (char*)g_verbosity->buf, _IOFBF, 0x4000);
+#endif
 }
 
 void retro_main_log_file_deinit(void)
@@ -286,6 +299,8 @@ void RARCH_LOG_V(const char *tag, const char *fmt, va_list ap)
 #if defined(__WINRT__)
    OutputDebugStringA(buffer);
 #endif
+#elif defined(PSX)
+   vprintf(fmt, ap);
 #else /* !HAVE_QT && !__WINRT__ */
 #if TARGET_OS_IPHONE
 #if TARGET_IPHONE_SIMULATOR
@@ -465,6 +480,10 @@ void rarch_log_file_init(
     * log files, since user may decide to switch at any moment...) */
    if (string_is_empty(timestamped_log_file_name))
    {
+#ifdef PSX
+      snprintf(timestamped_log_file_name, sizeof(timestamped_log_file_name),
+               "retroarch.log");
+#else
       struct tm tm_;
       time_t cur_time = time(NULL);
 
@@ -472,6 +491,7 @@ void rarch_log_file_init(
       strftime(timestamped_log_file_name,
             sizeof(timestamped_log_file_name),
             "retroarch__%Y_%m_%d__%H_%M_%S.log", &tm_);
+#endif
    }
 
    /* If nothing has changed, do nothing */

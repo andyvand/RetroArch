@@ -202,7 +202,6 @@ void string_list_join_concat_special(char *s, size_t len,
 
 struct string_list *string_split(const char *str, const char *delim)
 {
-   char *save      = NULL;
    char *copy      = NULL;
    const char *tmp = NULL;
    struct string_list *list = string_list_new();
@@ -213,7 +212,7 @@ struct string_list *string_split(const char *str, const char *delim)
    if (!(copy = strdup(str)))
       goto error;
 
-   tmp = strtok_r(copy, delim, &save);
+   tmp = strtok(copy, delim);
    while (tmp)
    {
       union string_list_elem_attr attr;
@@ -223,7 +222,7 @@ struct string_list *string_split(const char *str, const char *delim)
       if (!string_list_append(list, tmp, attr))
          goto error;
 
-      tmp = strtok_r(NULL, delim, &save);
+      tmp = strtok(NULL, delim);
    }
 
    free(copy);
@@ -238,7 +237,6 @@ error:
 bool string_split_noalloc(struct string_list *list,
       const char *str, const char *delim)
 {
-   char *save      = NULL;
    char *copy      = NULL;
    const char *tmp = NULL;
 
@@ -248,7 +246,7 @@ bool string_split_noalloc(struct string_list *list,
    if (!(copy = strdup(str)))
       return false;
 
-   tmp             = strtok_r(copy, delim, &save);
+   tmp             = strtok(copy, delim);
    while (tmp)
    {
       union string_list_elem_attr attr;
@@ -261,7 +259,7 @@ bool string_split_noalloc(struct string_list *list,
          return false;
       }
 
-      tmp = strtok_r(NULL, delim, &save);
+      tmp = strtok(NULL, delim);
    }
 
    free(copy);

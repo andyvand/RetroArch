@@ -21,6 +21,7 @@ OBJ :=
 
 DEFINES := -D__SWITCH__=1 -U__linux__ -U__linux -DGLM_FORCE_PURE=1 -DRARCH_CONSOLE -DRARCH_INTERNAL -DGLOBAL_CONFIG_DIR='"/switch"' -DHAVE_STB_VORBIS
 
+LOAD_WITHOUT_CORE_INFO = 1
 HAVE_DR_MP3 = 1
 HAVE_TRANSLATE = 1
 HAVE_SCREENSHOTS = 1
@@ -84,6 +85,10 @@ else
   HAVE_OZONE = 0
 endif
 
+ifeq ($(LOAD_WITHOUT_CORE_INFO),1)
+   DEFINES += -DLOAD_WITHOUT_CORE_INFO
+endif
+
 include Makefile.common
 BLACKLIST :=
 
@@ -115,7 +120,7 @@ SOURCES := $(CURDIR)/source
 DATA := data
 INCLUDES :=	include
 EXEFS_SRC := exefs_src
-#ROMFS := switch/romfs
+ROMFS := doom
 
 APP_TITLE := RetroArch
 APP_VERSION := $(RARCH_VERSION)
@@ -148,7 +153,7 @@ LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs $(ARCH) -Wl,--allow-multiple-de
 # add things from Makefile.common
 CFLAGS += $(DEF_FLAGS)
 
-LIBS	:= -lswresample -lavformat -lavcodec -lavutil -lswscale -lstdc++ -lbz2 -lpng -lz -lnx -lvpx -lopus -llzma -lm
+LIBS	:= -lstdc++ -lnx -lopus -lm
 
 ifeq ($(HAVE_OPENGL), 1)
   LIBS := -lEGL -lglapi -ldrm_nouveau $(LIBS)

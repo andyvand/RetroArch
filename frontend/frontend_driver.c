@@ -113,6 +113,9 @@ static frontend_ctx_driver_t *frontend_ctx_drivers[] = {
 #if defined(SWITCH) && defined(HAVE_LIBNX)
    &frontend_ctx_switch,
 #endif
+#if defined(PSX)
+   &frontend_ctx_psx,
+#endif
 #if defined(_WIN32) && !defined(_XBOX) && !defined(__WINRT__)
    &frontend_ctx_win32,
 #endif

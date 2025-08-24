@@ -26,7 +26,13 @@
 #include <retro_common_api.h>
 #include <libretro.h>
 
+#ifndef PSX
 #include <time.h>
+#else
+typedef unsigned int time_t;
+struct tm { unsigned int time; };
+#endif
+
 #include <boolean.h>
 
 #include "playlist.h"

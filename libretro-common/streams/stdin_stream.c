@@ -125,6 +125,10 @@ size_t read_stdin(char *s, size_t len)
    return has_read;
 }
 #else
+#ifndef STDIN_FILENO
+#define STDIN_FILENO 0
+#endif
+
 size_t read_stdin(char *s, size_t len)
 {
    size_t has_read = 0;

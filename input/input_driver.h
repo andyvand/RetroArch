@@ -56,6 +56,18 @@
 #include "../command.h"
 #endif
 
+#ifndef ALIGNED
+#define ALIGNED(X) __attribute__((aligned(X)))
+#endif
+
+#ifndef UINT32_C
+#define UINT32_C(c) c ## UL
+#endif
+
+#ifndef UINT64_C
+#define UINT64_C(c) c ## ULL
+#endif
+
 #if defined(ANDROID)
 #define DEFAULT_MAX_PADS 8
 #define ANDROID_KEYBOARD_PORT DEFAULT_MAX_PADS
@@ -78,6 +90,8 @@
 #define DEFAULT_MAX_PADS 4
 #elif defined(PSP)
 #define DEFAULT_MAX_PADS 1
+#elif defined(PSX)
+#define DEFAULT_MAX_PADS 2
 #elif defined(PS2)
 #define DEFAULT_MAX_PADS 8
 #elif defined(GEKKO) || defined(HW_RVL)
@@ -1138,6 +1152,7 @@ extern input_driver_t input_ps4;
 extern input_driver_t input_ps3;
 extern input_driver_t input_psp;
 extern input_driver_t input_ps2;
+extern input_driver_t input_psx;
 extern input_driver_t input_ctr;
 extern input_driver_t input_switch;
 extern input_driver_t input_xenon360;
@@ -1166,6 +1181,7 @@ extern input_device_driver_t ps4_joypad;
 extern input_device_driver_t ps3_joypad;
 extern input_device_driver_t psp_joypad;
 extern input_device_driver_t ps2_joypad;
+extern input_device_driver_t psx_joypad;
 extern input_device_driver_t ctr_joypad;
 extern input_device_driver_t switch_joypad;
 extern input_device_driver_t xdk_joypad;

@@ -40,7 +40,12 @@
 #elif defined(_3DS)
 #include <3ds.h>
 #else
+#ifndef PSX
 #include <time.h>
+#else
+typedef unsigned int time_t;
+struct tm { unsigned int time; };
+#endif
 #endif
 
 #if defined(_WIN32) && !defined(_XBOX)
@@ -98,6 +103,8 @@ static int nanosleepDOS(const struct timespec *rqtp, struct timespec *rmtp)
 #define retro_sleep(msec) (usleep(1000 * (msec)))
 #elif defined(WIIU)
 #define retro_sleep(msec) (OSSleepTicks(ms_to_ticks((msec))))
+#elif defined(PSX)
+#define retro_sleep(msec)
 #elif defined(__EMSCRIPTEN__)
 /* defined in frontend */
 #ifdef __cplusplus

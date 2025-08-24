@@ -2,6 +2,7 @@ TARGET := retroarch_ps2
 TARGET_RELEASE = retroarchps2.elf
 
 BUILD_FOR_PCSX2    = 1
+LOAD_WITHOUT_CORE_INFO ?= 1
 DEBUG              = 0
 SCREEN_DEBUG       = 0
 GRIFFIN_BUILD      = 0
@@ -10,6 +11,10 @@ MUTE_WARNINGS      = 1
 WHOLE_ARCHIVE_LINK = 0
 HAVE_STATIC_DUMMY ?= 0
 PS2_IP = 192.168.1.10
+
+ifeq ($(LOAD_WITHOUT_CORE_INFO),1)
+   DEFINES += -DLOAD_WITHOUT_CORE_INFO
+endif
 
 ifeq ($(DEBUG), 1)
    OPTIMIZE_LV	:= -O0 -g

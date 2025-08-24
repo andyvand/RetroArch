@@ -23,7 +23,15 @@
 #ifndef __RETRO_ASSERT_H
 #define __RETRO_ASSERT_H
 
+#ifndef PSX
 #include <assert.h>
+#else
+#include <stdlib.h>
+
+#ifdef __GNUC__
+#include <unistd.h>
+#endif
+#endif
 
 #ifdef RARCH_INTERNAL
 #include <stdio.h>

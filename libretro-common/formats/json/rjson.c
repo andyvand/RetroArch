@@ -33,6 +33,10 @@
 #include <streams/interface_stream.h>
 #include <streams/file_stream.h>
 
+#ifdef PSX
+extern double atof(const char *);
+#endif
+
 struct _rjson_stack { enum rjson_type type; size_t count; };
 
 struct rjson

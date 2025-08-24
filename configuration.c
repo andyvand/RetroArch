@@ -18,6 +18,7 @@
  */
 
 #include <ctype.h>
+#include <stdlib.h>
 
 #include <libretro.h>
 #include <file/config_file.h>
@@ -76,6 +77,12 @@
 
 #ifdef HAVE_LAKKA
 #include <time.h>
+#endif
+
+#ifdef PSX
+#ifndef getenv
+#define getenv(P) NULL
+#endif
 #endif
 
 enum video_driver_enum
@@ -3774,7 +3781,6 @@ static bool config_load_file(global_t *global,
    static bool first_load                          = true;
    bool without_overrides                          = false;
    unsigned msg_color                              = 0;
-   char *save                                      = NULL;
    char *override_username                         = NULL;
    runloop_state_t *runloop_st                     = runloop_state_get_ptr();
    int bool_settings_size                          = sizeof(settings->bools)  / sizeof(settings->bools.placeholder);
@@ -3850,7 +3856,7 @@ static bool config_load_file(global_t *global,
       const char *extra_path = NULL;
       strlcpy(tmp_append_path, path_get(RARCH_PATH_CONFIG_APPEND),
             sizeof(tmp_append_path));
-      extra_path = strtok_r(tmp_append_path, "|", &save);
+      extra_path = strtok(tmp_append_path, "|");
 
       while (extra_path)
       {
@@ -3863,7 +3869,7 @@ static bool config_load_file(global_t *global,
             if (!result)
                RARCH_ERR("[Config] Failed to append config: \"%s\".\n", extra_path);
          }
-         extra_path = strtok_r(NULL, "|", &save);
+         extra_path = strtok(NULL, "|");
       }
 
       /* Re-check verbosity settings */
@@ -3882,7 +3888,7 @@ static bool config_load_file(global_t *global,
 #endif
       strlcpy(tmp_append_path, path_get(RARCH_PATH_CONFIG_OVERRIDE),
             sizeof(tmp_append_path));
-      extra_path = strtok_r(tmp_append_path, "|", &save);
+      extra_path = strtok(tmp_append_path, "|");
 
       while (extra_path)
       {
@@ -3895,7 +3901,7 @@ static bool config_load_file(global_t *global,
             if (!result)
                RARCH_ERR("[Config] Failed to append override config: \"%s\".\n", extra_path);
          }
-         extra_path = strtok_r(NULL, "|", &save);
+         extra_path = strtok(NULL, "|");
       }
 
       /* Re-check verbosity settings */

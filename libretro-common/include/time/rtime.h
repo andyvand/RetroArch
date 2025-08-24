@@ -27,7 +27,13 @@
 
 #include <stdint.h>
 #include <stddef.h>
+
+#ifndef PSX
 #include <time.h>
+#else
+typedef unsigned int time_t;
+typedef struct tm { unsigned int time; };
+#endif
 
 RETRO_BEGIN_DECLS
 

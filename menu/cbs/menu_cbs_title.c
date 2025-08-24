@@ -822,10 +822,10 @@ static int action_get_title_generic(char *s, size_t len,
 {
    if (!string_is_empty(path))
    {
-      char *tok, *save = NULL;
+      char *tok        = NULL;
       char *path_cpy   = strdup(path);
 
-      if ((tok = strtok_r(path_cpy, "|", &save)))
+      if ((tok = strtok(path_cpy, "|")))
       {
          size_t _len = strlcpy(s, text, len);
          s[  _len]   = ':';
@@ -941,13 +941,13 @@ static int action_get_title_group_settings(const char *path, const char *label,
    }
 
    {
-      char *tok, *save = NULL;
+      char *tok        = NULL;
       char *label_cpy  = strdup(label);
 
-      if ((tok = strtok_r(label_cpy, "|", &save)))
+      if ((tok = strtok(label_cpy, "|")))
       {
          size_t _len = strlcpy(s, tok, len);
-         if ((tok = strtok_r(NULL, "|", &save)))
+         if ((tok = strtok(NULL, "|")))
          {
             s[  _len] = ' ';
             s[++_len] = '-';

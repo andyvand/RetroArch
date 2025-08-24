@@ -17,7 +17,13 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <string.h>
+
+#ifndef PSX
 #include <time.h>
+#else
+typedef unsigned int time_t;
+struct tm { unsigned int time; };
+#endif
 
 #include <lists/string_list.h>
 #include <streams/interface_stream.h>
@@ -412,12 +418,17 @@ static bool dump_to_file_desperate(const void *data,
       time_t time_;
       struct tm tm_;
 
+#ifndef PSX
       time(&time_);
       rtime_localtime(&time_, &tm_);
       _len += strlcpy(path  + _len, "/RetroArch-recovery-", sizeof(path) - _len);
       _len += snprintf(path + _len, sizeof(path) - _len, "%u", type);
       strftime(path + _len, sizeof(path) - _len,
             "%Y-%m-%d-%H-%M-%S", &tm_);
+#else
+      _len = strlcpy(path + len, "RetroArch-recovery-", sizeof(path) - _len);
+      _len += snprintf(path + _len, sizeof(path) - _len, "%u", type);
+#endif
 
       /* Fallback (emergency) saves are always
        * uncompressed

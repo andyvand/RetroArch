@@ -34,6 +34,16 @@
 #include <mmintrin.h>
 #endif
 
+#ifdef PSX
+#ifndef fminf
+#define fminf(A,B) (((A) < (B)) ? (A) : (B))
+#endif
+
+#ifndef fmaxf
+#define fmaxf(A,B) (((A) > (B)) ? (A) : (B))
+#endif
+#endif
+
 static INLINE float float_min(float a, float b)
 {
 #ifdef __SSE2__

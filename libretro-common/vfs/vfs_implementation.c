@@ -54,7 +54,11 @@
 #  include <sys/types.h>
 #  include <sys/stat.h>
 #  if !defined(VITA)
+#  if !defined(PSX)
 #  include <dirent.h>
+#  else
+#  include <psx.h>
+#  endif
 #  endif
 #  include <unistd.h>
 #  if defined(WIIU)
@@ -75,8 +79,19 @@
 #  endif
 #  include <sys/types.h>
 #  include <sys/stat.h>
+#  ifndef PSX
 #  include <dirent.h>
+#  else
+#  include <psxbios.h>
+#  endif
 #  include <unistd.h>
+#endif
+
+#ifdef PSX
+#define O_BINARY 0
+
+typedef unsigned int off_t;
+typedef unsigned int size_t;
 #endif
 
 #if defined(__QNX__) || defined(PSP)
@@ -398,7 +413,7 @@ libretro_vfs_implementation_file *retro_vfs_file_open_impl(
          mode_str = "wb";
 
          flags    = O_WRONLY | O_CREAT | O_TRUNC;
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(PSX)
          flags   |= S_IRUSR | S_IWUSR;
 #else
          flags   |= O_BINARY;
@@ -408,7 +423,7 @@ libretro_vfs_implementation_file *retro_vfs_file_open_impl(
       case RETRO_VFS_FILE_ACCESS_READ_WRITE:
          mode_str = "w+b";
          flags    = O_RDWR | O_CREAT | O_TRUNC;
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(PSX)
          flags   |= S_IRUSR | S_IWUSR;
 #else
          flags   |= O_BINARY;
@@ -420,7 +435,7 @@ libretro_vfs_implementation_file *retro_vfs_file_open_impl(
          mode_str = "r+b";
 
          flags    = O_RDWR;
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(PSX)
          flags   |= S_IRUSR | S_IWUSR;
 #else
          flags   |= O_BINARY;
@@ -632,7 +647,7 @@ int64_t retro_vfs_file_truncate_impl(libretro_vfs_implementation_file *stream, i
 	   stream->size = len;
 	   return 0;
    }
-#elif !defined(VITA) && !defined(PSP) && !defined(PS2) && !defined(ORBIS) && (!defined(SWITCH) || defined(HAVE_LIBNX))
+#elif !defined(VITA) && !defined(PSP) && !defined(PS2) && !defined(ORBIS) && (!defined(SWITCH) || defined(HAVE_LIBNX)) && !defined(PSX)
    if (stream && ftruncate(fileno(stream->fp), (off_t)len) == 0)
    {
       stream->size = len;
@@ -750,9 +765,13 @@ int64_t retro_vfs_file_write_impl(libretro_vfs_implementation_file *stream, cons
 
 int retro_vfs_file_flush_impl(libretro_vfs_implementation_file *stream)
 {
+#ifdef PSX
+   return 0;
+#else
    if (stream && fflush(stream->fp) == 0)
       return 0;
    return -1;
+#endif
 }
 
 int retro_vfs_file_remove_impl(const char *path)
@@ -785,6 +804,8 @@ int retro_vfs_file_remove_impl(const char *path)
          free(path_wide);
       }
 #endif
+#elif defined(PSX)
+   return 0;
 #else
       ret = remove(path);
 #endif
@@ -867,7 +888,9 @@ int retro_vfs_stat_impl(const char *path, int32_t *size)
    if (!path || !*path)
       return 0;
    {
-#if defined(VITA)
+#if defined(PSX)
+      return 0;
+#elif defined(VITA)
       /* Vita / PSP */
       SceIoStat stat_buf;
       int dir_ret;
@@ -986,6 +1009,9 @@ int retro_vfs_stat_impl(const char *path, int32_t *size)
 
 int retro_vfs_mkdir_impl(const char *dir)
 {
+#ifdef PSX
+   return 0;
+#else
 #if defined(_WIN32)
 #ifdef LEGACY_WIN32
    int ret        = _mkdir(dir);
@@ -1034,6 +1060,7 @@ int retro_vfs_mkdir_impl(const char *dir)
    if (path_mkdir_err(ret))
       return -2;
    return ret < 0 ? -1 : 0;
+#endif
 }
 
 #ifdef VFS_FRONTEND
@@ -1055,6 +1082,9 @@ struct libretro_vfs_implementation_dir
 #elif defined(VITA)
    SceUID directory;
    SceIoDirent entry;
+#elif defined(PSX)
+   struct DIRENTRY *directory;
+   struct DIRENTRY entry;
 #elif defined(__PSL1GHT__) || defined(__PS3__)
    int error;
    int directory;
@@ -1130,6 +1160,8 @@ libretro_vfs_implementation_dir *retro_vfs_opendir_impl(
    rdir->entry           = NULL;
 #elif defined(__PSL1GHT__) || defined(__PS3__)
    rdir->error           = sysFsOpendir(name, &rdir->directory);
+#elif defined(PSX)
+   rdir->directory        = firstfile(name, &rdir->entry);
 #else
    rdir->directory       = opendir(name);
    rdir->entry           = NULL;
@@ -1169,6 +1201,11 @@ bool retro_vfs_readdir_impl(libretro_vfs_implementation_dir *rdir)
    uint64_t nread;
    rdir->error = sysFsReaddir(rdir->directory, &rdir->entry, &nread);
    return (nread != 0);
+#elif defined(PSX)
+   rdir->directory = nextfile(&rdir->entry);
+   if (rdir->directory == NULL)
+      return false;
+   return true;
 #else
    return ((rdir->entry = readdir(rdir->directory)) != NULL);
 #endif
@@ -1189,6 +1226,8 @@ const char *retro_vfs_dirent_get_name_impl(libretro_vfs_implementation_dir *rdir
    return (char*)rdir->entry.cFileName;
 #elif defined(VITA) || defined(__PSL1GHT__) || defined(__PS3__)
    return rdir->entry.d_name;
+#elif defined(PSX)
+   return rdir->entry.name;
 #else
    if (!rdir || !rdir->entry)
       return NULL;
@@ -1207,6 +1246,8 @@ bool retro_vfs_dirent_is_dir_impl(libretro_vfs_implementation_dir *rdir)
 #elif defined(__PSL1GHT__) || defined(__PS3__)
    sysFSDirent *entry          = (sysFSDirent*)&rdir->entry;
    return (entry->d_type == FS_TYPE_DIR);
+#elif defined(PSX)
+   return false;
 #else
    struct stat buf;
    char path[PATH_MAX_LENGTH];
@@ -1238,6 +1279,8 @@ int retro_vfs_closedir_impl(libretro_vfs_implementation_dir *rdir)
    sceIoDclose(rdir->directory);
 #elif defined(__PSL1GHT__) || defined(__PS3__)
    rdir->error = sysFsClosedir(rdir->directory);
+#elif defined(PSX)
+   rdir->directory = NULL;
 #else
    if (rdir->directory)
       closedir(rdir->directory);

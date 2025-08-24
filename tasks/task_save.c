@@ -17,7 +17,13 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <string.h>
+
+#ifndef PSX
 #include <time.h>
+#else
+typedef unsigned int time_t;
+struct tm { unsigned int time; };
+#endif
 
 #include <compat/strl.h>
 #include <lists/string_list.h>

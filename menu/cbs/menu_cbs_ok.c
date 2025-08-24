@@ -110,6 +110,68 @@
 #include "../../steam/steam.h"
 #endif
 
+#ifdef PSX
+typedef union
+{
+  float value;
+  uint32_t word;
+} ieee_float_shape_type;
+
+#ifndef GET_FLOAT_WORD
+#define GET_FLOAT_WORD(i,d) \
+do { \
+  ieee_float_shape_type gf_u; \
+  gf_u.value = (d); \
+  (i) = gf_u.word; \
+} while (0)
+#endif
+
+#ifndef SET_FLOAT_WORD
+#define SET_FLOAT_WORD(d,i) \
+do { \
+  ieee_float_shape_type sf_u; \
+  sf_u.word = (i); \
+  (d) = sf_u.value; \
+} while (0)
+#endif
+
+double atof(const char *s)
+{
+  return strtod(s, NULL);
+}
+
+long int lroundf(float x)
+{
+  int32_t exponent_less_127;
+  uint32_t w;
+  long int result;
+  int32_t sign;
+
+  GET_FLOAT_WORD (w, x);
+  exponent_less_127 = ((w & 0x7f800000) >> 23) - 127;
+  sign = (w & 0x80000000) != 0 ? -1 : 1;
+  w &= 0x7fffff;
+  w |= 0x800000;
+
+  if (exponent_less_127 < (int)((8 * sizeof (long int)) - 1))
+    {
+      if (exponent_less_127 < 0)
+        return exponent_less_127 < -1 ? 0 : sign;
+      else if (exponent_less_127 >= 23)
+        result = (long int) w << (exponent_less_127 - 23);
+      else
+        {
+          w += 0x400000 >> exponent_less_127;
+          result = w >> (23 - exponent_less_127);
+        }
+    }
+  else
+      return (long int) x;
+
+  return sign * result;
+}
+#endif
+
 enum
 {
    ACTION_OK_LOAD_PRESET = 0,
@@ -5406,9 +5468,9 @@ static int action_ok_download_generic(const char *path,
          break;
       case MENU_ENUM_LABEL_CB_CORE_CONTENT_DOWNLOAD:
          {
-            char *tok, *save     = NULL;
+            char *tok            = NULL;
             char *menu_label_cpy = strdup(menu_label);
-            if ((tok = strtok_r(menu_label_cpy, ";", &save)))
+            if ((tok = strtok(menu_label_cpy, ";")))
                strlcpy(s, tok, sizeof(s));
             free(menu_label_cpy);
          }
@@ -6420,7 +6482,7 @@ static int action_ok_rdb_entry_submenu(const char *path,
 {
    char new_str[PATH_MAX_LENGTH];
    char new_label[PATH_MAX_LENGTH];
-   char *tok, *save = NULL;
+   char *tok        = NULL;
    size_t _len      = 0;
    char *label_cpy  = NULL;
 
@@ -6431,15 +6493,15 @@ static int action_ok_rdb_entry_submenu(const char *path,
    label_cpy        = strdup(label);
 
    /* element 0: label */
-   if ((tok = strtok_r(label_cpy, "|", &save)))
+   if ((tok = strtok(label_cpy, "|")))
       fill_pathname_join_delim(new_label,
             msg_hash_to_str(MENU_ENUM_LABEL_DEFERRED_CURSOR_MANAGER_LIST),
             tok, '_', sizeof(new_label));
    /* element 1: value */
-   if ((tok = strtok_r(NULL, "|", &save)))
+   if ((tok = strtok(NULL, "|")))
       _len += strlcpy(new_str + _len, tok, sizeof(new_str) - _len);
    /* element 2: database path */
-   if ((tok = strtok_r(NULL, "|", &save)))
+   if ((tok = strtok(NULL, "|")))
    {
       _len += strlcpy(new_str + _len, "|", sizeof(new_str) - _len);
       strlcpy(new_str + _len, tok, sizeof(new_str) - _len);
@@ -7118,12 +7180,12 @@ static int generic_action_ok_dropdown_setting(const char *path, const char *labe
       case ST_STRING_OPTIONS:
          if (setting->get_string_representation)
          {
-            char *tok, *save         = NULL;
+            char *tok                = NULL;
             unsigned tok_idx         = 0;
             char *setting_values_cpy = strdup(setting->values);
 
-            for (tok = strtok_r(setting_values_cpy, "|", &save); tok != NULL;
-                 tok = strtok_r(NULL, "|", &save), tok_idx++)
+            for (tok = strtok(setting_values_cpy, "|"); tok != NULL;
+                 tok = strtok(NULL, "|"), tok_idx++)
             {
                if (idx == tok_idx)
                {
@@ -7162,7 +7224,6 @@ static int action_ok_push_dropdown_item(const char *path,
 int action_cb_push_dropdown_item_resolution(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-   char *save           = NULL;
    char *tok            = NULL;
    unsigned width       = 0;
    unsigned height      = 0;
@@ -7172,11 +7233,11 @@ int action_cb_push_dropdown_item_resolution(const char *path,
    if (!str)
       return -1;
 
-   if ((tok = strtok_r(str, "x", &save)))
+   if ((tok = strtok(str, "x")))
       width       = (unsigned)strtoul(tok, NULL, 0);
-   if ((tok = strtok_r(NULL, " ", &save)))
+   if ((tok = strtok(NULL, " ")))
       height      = (unsigned)strtoul(tok, NULL, 0);
-   if ((tok = strtok_r(NULL, "(", &save)))
+   if ((tok = strtok(NULL, "(")))
       refreshrate = (float)strtod(tok, NULL);
 
    free(str);

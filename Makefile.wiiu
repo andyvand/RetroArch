@@ -13,7 +13,7 @@ HAVE_RUNAHEAD              = 1
 WIIU_LOG_RPX               = 0
 BUILD_DIR                  = objs/wiiu
 PC_DEVELOPMENT_TCP_PORT    ?=
-LOAD_WITHOUT_CORE_INFO     ?= 0
+LOAD_WITHOUT_CORE_INFO     ?= 1
 
 ifeq ($(SALAMANDER_BUILD),1)
    BUILD_DIR := $(BUILD_DIR)-salamander

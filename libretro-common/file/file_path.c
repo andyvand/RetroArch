@@ -23,8 +23,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef PSX
 #include <time.h>
 #include <locale.h>
+#else
+typedef unsigned int time_t;
+struct tm { unsigned int time; };
+#endif
 
 #include <sys/stat.h>
 
@@ -74,6 +80,7 @@
 size_t strftime_am_pm(char *s, size_t len, const char* format,
       const void *ptr)
 {
+#ifndef PSX
    size_t _len              = 0;
 #if !(defined(__linux__) && !defined(ANDROID))
    char *local              = NULL;
@@ -94,6 +101,13 @@ size_t strftime_am_pm(char *s, size_t len, const char* format,
    }
 #endif
    return _len;
+#else
+   (void)s;
+   (void)len;
+   (void)format;
+   (void)ptr;
+   return 0;
+#endif
 }
 
 /**
@@ -547,6 +561,10 @@ size_t fill_pathname_parent_dir(char *s,
 size_t fill_dated_filename(char *s,
       const char *ext, size_t len)
 {
+#ifdef PSX
+   size_t _len = snprintf(s, len, "RetroArch");
+   _len += strlcpy(s + _len, ext, len - _len);
+#else
    size_t _len;
    struct tm tm_;
    time_t cur_time = time(NULL);
@@ -554,6 +572,7 @@ size_t fill_dated_filename(char *s,
    _len  = strftime(s, len,
          "RetroArch-%m%d-%H%M%S", &tm_);
    _len += strlcpy(s + _len, ext, len - _len);
+#endif
    return _len;
 }
 
@@ -575,11 +594,16 @@ size_t fill_dated_filename(char *s,
 size_t fill_str_dated_filename(char *s,
       const char *in_str, const char *ext, size_t len)
 {
+#ifndef PSX
    struct tm tm_;
+#endif
    size_t _len     = 0;
+#ifndef PSX
    time_t cur_time = time(NULL);
    rtime_localtime(&cur_time, &tm_);
+#endif
    _len      = strlcpy(s, in_str, len);
+#ifndef PSX
    if (string_is_empty(ext))
       _len += strftime(s + _len, len - _len, "-%y%m%d-%H%M%S", &tm_);
    else
@@ -587,6 +611,11 @@ size_t fill_str_dated_filename(char *s,
       _len  += strftime(s + _len, len - _len, "-%y%m%d-%H%M%S.", &tm_);
       _len  += strlcpy(s + _len, ext,    len - _len);
    }
+#else
+   if (string_is_empty(ext) == false)
+      _len  += strlcpy(s + _len, ext,    len - _len);
+#endif
+
    return _len;
 }
 

@@ -2818,14 +2818,13 @@ static int menu_displaylist_parse_database_entry(menu_handle_t *menu,
 
             if (entry->crc32)
             {
-               char *save            = NULL;
                char *entry_crc32_cpy = strdup(entry->crc32);
-               const char *con       = strtok_r(entry_crc32_cpy, "|", &save);
+               const char *con       = strtok(entry_crc32_cpy, "|");
 
                if (con)
                {
                   char *elem0        = strdup(con);
-                  if ((con = strtok_r(NULL, "|", &save)))
+                  if ((con = strtok(NULL, "|")))
                   {
                      switch (extension_to_file_hash_type(con))
                      {
@@ -13142,12 +13141,12 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
 #endif
                if (!string_is_empty(info->label))
                {
-                  char *tok, *save     = NULL;
+                  char *tok            = NULL;
                   char *info_label_cpy = strdup(info->label);
 
-                  if ((tok = strtok_r(info_label_cpy, "|", &save)))
+                  if ((tok = strtok(info_label_cpy, "|")))
                      elem0     = strdup(tok);
-                  if ((tok = strtok_r(NULL, "|", &save)))
+                  if ((tok = strtok(NULL, "|")))
                      elem1     = strdup(tok);
                   free(info_label_cpy);
                   free(info->label);
@@ -13398,16 +13397,15 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
             {
 #ifdef HAVE_NETWORKING
                char new_label[NAME_MAX_LENGTH];
-               char *save                  = NULL;
                char *info_path_cpy         = strdup(info->path);
-               const char *con             = strtok_r(info_path_cpy, ";", &save);
+               const char *con             = strtok(info_path_cpy, ";");
 
                if (con)
                   strlcpy(new_label, con, sizeof(new_label));
                else
                   new_label[0] = '\0';
 
-               if ((con = strtok_r(NULL, ";", &save))) /* Get second parameter */
+               if ((con = strtok(NULL, ";"))) /* Get second parameter */
                   strlcpy(menu->core_buf, con, menu->core_len);
                free(info_path_cpy);
 
@@ -15815,7 +15813,7 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                         case ST_STRING_OPTIONS:
                            {
                               char val_d[16];
-                              char *tok, *save         = NULL;
+                              char *tok                = NULL;
                               unsigned i               = 0;
                               bool checked_found       = false;
                               unsigned checked         = 0;
@@ -15824,8 +15822,8 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                               char *setting_values_cpy = strdup(setting->values);
                               snprintf(val_d, sizeof(val_d), "%d", setting->enum_idx);
 
-                              for (tok = strtok_r(setting_values_cpy, "|", &save); tok;
-                                    tok = strtok_r(NULL, "|", &save), i++)
+                              for (tok = strtok(setting_values_cpy, "|"); tok;
+                                    tok = strtok(NULL, "|"), i++)
                               {
                                     if (setting->get_string_representation)
                                     {
@@ -16164,7 +16162,7 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                      case ST_STRING_OPTIONS:
                         {
                            char val_d[16];
-                           char *tok, *save         = NULL;
+                           char *tok                = NULL;
                            unsigned i               = 0;
                            bool checked_found       = false;
                            unsigned checked         = 0;
@@ -16172,8 +16170,8 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
 
                            snprintf(val_d, sizeof(val_d), "%d", setting->enum_idx);
 
-                           for (tok = strtok_r(setting_values_cpy, "|", &save); tok;
-                                 tok = strtok_r(NULL, "|", &save), i++)
+                           for (tok = strtok(setting_values_cpy, "|"); tok;
+                                 tok = strtok(NULL, "|"), i++)
                            {
                               if (menu_entries_append(info->list,
                                        tok,

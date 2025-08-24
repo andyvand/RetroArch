@@ -37,6 +37,10 @@
 #include <streams/file_stream.h>
 #include <array/rhmap.h>
 
+#ifdef PSX
+#define getenv(P) NULL
+#endif
+
 #define MAX_INCLUDE_DEPTH 16
 
 struct config_include_list
@@ -657,7 +661,6 @@ static int config_file_from_string_internal(
       const char *path)
 {
    char *lines                    = from_string;
-   char *save_ptr                 = NULL;
    char *line                     = NULL;
 
    if (!string_is_empty(path))
@@ -666,7 +669,7 @@ static int config_file_from_string_internal(
       return 0;
 
    /* Get first line of config file */
-   line = strtok_r(lines, "\n", &save_ptr);
+   line = strtok(lines, "\n");
 
    while (line)
    {
@@ -708,7 +711,7 @@ static int config_file_from_string_internal(
          free(list);
 
       /* Get next line of config file */
-      line = strtok_r(NULL, "\n", &save_ptr);
+      line = strtok(NULL, "\n");
    }
 
    return 0;
@@ -1400,6 +1403,7 @@ size_t config_set_char(config_file_t *conf, const char *key, char val)
  **/
 bool config_file_write(config_file_t *conf, const char *path, bool sort)
 {
+#ifndef PSX
    if (!conf)
       return false;
 
@@ -1429,6 +1433,7 @@ bool config_file_write(config_file_t *conf, const char *path, bool sort)
          conf->flags &= ~CONF_FILE_FLG_MODIFIED;
       }
    }
+#endif
 
    return true;
 }

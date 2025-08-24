@@ -492,6 +492,7 @@ void runtime_log_set_last_played(runtime_log_t *runtime_log,
 /* Sets last played entry to current date/time */
 void runtime_log_set_last_played_now(runtime_log_t *runtime_log)
 {
+#ifndef PSX
    time_t current_time;
    struct tm time_info;
 
@@ -509,6 +510,15 @@ void runtime_log_set_last_played_now(runtime_log_t *runtime_log)
    runtime_log->last_played.hour   = (unsigned)time_info.tm_hour;
    runtime_log->last_played.minute = (unsigned)time_info.tm_min;
    runtime_log->last_played.second = (unsigned)time_info.tm_sec;
+#else
+   /* No values */
+   runtime_log->last_played.year   = 0;
+   runtime_log->last_played.month  = 0;
+   runtime_log->last_played.day    = 0;
+   runtime_log->last_played.hour   = 0;
+   runtime_log->last_played.minute = 0;
+   runtime_log->last_played.second = 0;
+#endif
 }
 
 /* Resets log to default (zero) values */
@@ -584,6 +594,7 @@ void runtime_log_get_last_played(runtime_log_t *runtime_log,
 static void runtime_log_get_last_played_time(runtime_log_t *runtime_log,
       struct tm *time_info)
 {
+#ifndef PSX
    /* Set tm values */
    time_info->tm_year  = (int)runtime_log->last_played.year  - 1900;
    time_info->tm_mon   = (int)runtime_log->last_played.month - 1;
@@ -596,6 +607,10 @@ static void runtime_log_get_last_played_time(runtime_log_t *runtime_log,
    /* Perform any required range adjustment + populate
     * missing entries */
    mktime(time_info);
+#else
+   (void)runtime_log;
+   (void)time_info;
+#endif
 }
 
 static size_t runtime_last_played_human(runtime_log_t *runtime_log,
@@ -627,8 +642,13 @@ static size_t runtime_last_played_human(runtime_log_t *runtime_log,
    /* Get time */
    runtime_log_get_last_played_time(runtime_log, &time_info);
 
+#ifndef PSX
    last_played = mktime(&time_info);
    current     = time(NULL);
+#else
+   last_played = 0;
+   current = 0;
+#endif
 
    if ((delta = current - last_played) <= 0)
       return 0;

@@ -1,7 +1,10 @@
 #ifndef _RETROARCH_TYPES_H
 #define _RETROARCH_TYPES_H
 
+#ifndef PSX
 #include <setjmp.h>
+#endif
+
 #include <boolean.h>
 #include <retro_inline.h>
 #include <retro_common_api.h>
@@ -260,7 +263,9 @@ enum global_flags
 
 typedef struct global
 {
+#ifndef PSX
    jmp_buf error_sjlj_context; /* 4-byte alignment, put it right before long */
+#endif
 
    /* Settings and/or global state that is specific to
     * a console-style implementation. */

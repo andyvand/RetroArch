@@ -53,6 +53,22 @@
 #include <sys/param.h>
 #endif
 
+#ifndef ALIGNED
+#ifdef __GNUC__
+#define ALIGNED(X) __attribute__((aligned(X)))
+#else
+#define ALIGNED(X)
+#endif
+#endif
+
+#ifndef UINT32_C
+#define UINT32_C(c) c ## UL
+#endif
+
+#ifndef UINT64_C
+#define UINT64_C(c) c ## ULL
+#endif
+
 /**
  * Computes the bitwise OR of two bit arrays.
  *
@@ -509,6 +525,8 @@ typedef struct
 #    endif
 #  endif
 #elif defined(PS2)
+#  define PRI_SIZET "u"
+#elif defined(PSX)
 #  define PRI_SIZET "u"
 #else
 #  if (SIZE_MAX == 0xFFFF)

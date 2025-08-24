@@ -83,6 +83,10 @@
 #include <ps2sdkapi.h>
 #endif
 
+#if defined(PSX)
+#include <psx.h>
+#endif
+
 #if !defined(__PSL1GHT__) && defined(__PS3__)
 #include <sys/sys_time.h>
 #endif
@@ -200,6 +204,8 @@ retro_perf_tick_t cpu_features_get_perf_counter(void)
    sceRtcGetCurrentTick((SceRtcTick*)&time_ticks);
 #elif defined(PS2)
    time_ticks = ps2_clock();
+#elif defined(PSX)
+   time_ticks = GetRCnt(RCntCNT2);
 #elif defined(_3DS)
    time_ticks = svcGetSystemTick();
 #elif defined(WIIU)
@@ -247,6 +253,8 @@ retro_time_t cpu_features_get_time_usec(void)
    return emscripten_get_now() * 1000;
 #elif defined(PS2)
    return ps2_clock() / PS2_CLOCKS_PER_MSEC * 1000;
+#elif defined(PSX)
+   return GetRCnt(RCntCNT2) * 1000000LL / 1193180;
 #elif defined(VITA) || defined(PSP)
    return sceKernelGetSystemTimeWide();
 #elif defined(DJGPP)

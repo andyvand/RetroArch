@@ -18,7 +18,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+
+#ifndef PSX
 #include <locale.h>
+#endif
+
 #ifdef HAVE_NETWORKING
 #include <net/net_compat.h>
 #include <net/net_socket.h>

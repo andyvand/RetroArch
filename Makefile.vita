@@ -4,6 +4,7 @@ HAVE_FILE_LOGGER	= 1
 GRIFFIN_BUILD        = 0
 WHOLE_ARCHIVE_LINK   = 0
 HAVE_STATIC_DUMMY ?= 0
+LOAD_WITHOUT_CORE_INFO    ?= 1
 
 VITA_TITLE_ID	:= RETROARCH
 VITA_TITLE_NAME	:= RetroArch
@@ -16,6 +17,10 @@ OBJ :=
 SCE_LIBC_SIZE := 4194304
 DEFINES := -DHAVE_ONLINE_UPDATER -DHAVE_UPDATE_ASSETS -DHAVE_STB_VORBIS
 INCDIRS :=
+
+ifeq ($(LOAD_WITHOUT_CORE_INFO),1)
+   DEFINES += -DLOAD_WITHOUT_CORE_INFO
+endif
 
 ifeq ($(GRIFFIN_BUILD), 1)
 	OBJ += griffin/griffin.o
@@ -267,11 +272,21 @@ $(TARGET).elf: $(OBJ) liblibScePiglet_stub.a
 	vita-elf-create $< $@
 
 %.self: %.velf
-	vita-make-fself -c $(FSELF_FLAGS) $< $@
+	vita-make-fself -s $< $@
 
 %.vpk: %.self
 	vita-mksfoex -s TITLE_ID=$(VITA_TITLE_ID) "$(VITA_TITLE_NAME)" -d ATTRIBUTE2=12 param.sfo
-	vita-pack-vpk -s param.sfo -b $< $@
+	rm -rf vpk && mkdir -p vpk/sce_sys/livearea/contents
+	cp $< vpk/eboot.bin
+	cp param.sfo vpk/sce_sys/
+	cp pkg/vita/assets/ICON0.PNG vpk/sce_sys/
+	cp pkg/vita/assets/livearea/contents/template.xml vpk/sce_sys/livearea/contents/
+	cp pkg/vita/assets/livearea/contents/bg.png vpk/sce_sys/livearea/contents/
+	cp pkg/vita/assets/livearea/contents/startup.png vpk/sce_sys/livearea/contents/
+	cp pkg/vita/assets/livearea/contents/website.png vpk/sce_sys/livearea/contents/
+	cp -r doom vpk/data
+	cd vpk && zip -r ../$@ . && cd ..
+	rm -Rf vpk
 
 clean:
 	@$(if $(Q), echo $@,)

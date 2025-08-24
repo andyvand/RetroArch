@@ -354,7 +354,7 @@ static int deferred_push_cursor_manager_list_generic(
       menu_displaylist_info_t *info, enum database_query_type type)
 {
    char query[256];
-   char *tok, *save  = NULL;
+   char *tok         = NULL;
    char *elem0       = NULL;
    char *elem1       = NULL;
    char *path_cpy    = NULL;
@@ -364,11 +364,11 @@ static int deferred_push_cursor_manager_list_generic(
       return -1;
 
    path_cpy = strdup(path);
-   tok      = strtok_r(path_cpy, "|", &save);
+   tok      = strtok(path_cpy, "|");
 
    if (tok)
       elem0 = strdup(tok);
-   if ((tok = strtok_r(NULL, "|", &save)))
+   if ((tok = strtok(NULL, "|")))
       elem1 = strdup(tok);
    free(path_cpy);
 
